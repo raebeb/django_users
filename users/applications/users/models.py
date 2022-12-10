@@ -5,8 +5,8 @@ from .managers import UserManager
 class User(AbstractUser, PermissionsMixin):
 
     GENDER_CHOICES = (
-        ('M', 'Masculine'),
-        ('F', 'Feminine'),
+        ('M', 'Male'),
+        ('F', 'Female'),
         ('O', 'Other'),
     )
 
