@@ -77,3 +77,46 @@ class UserLoginForm(forms.Form):
     
         return self.cleaned_data
 
+
+class UserUpdatePasswordForm(forms.Form):
+    """Form definition for UserUpdatePassword."""
+    current_password = forms.CharField(
+        label='Current password',
+        required=True,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Current password',
+            }
+        )
+    )
+    
+    new_password = forms.CharField(
+        label='New password',
+        required=True,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'New password',
+            }
+        )
+    )
+
+    new_password_confirmation = forms.CharField(
+        label='New password confirmation',
+        required=True,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'New password confirmation',
+            }
+        )
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        current_password = cleaned_data.get('current_password')
+        new_password = cleaned_data.get('new_password')
+        new_password_confirmation = cleaned_data.get('new_password_confirmation')
+
+        if new_password != new_password_confirmation:
+            self.add_error('new_password_confirmation', 'Passwords do not match')
+    
+    

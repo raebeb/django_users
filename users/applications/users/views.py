@@ -5,18 +5,21 @@ from django.views.generic import (
     TemplateView
 )
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import FormView
 # Form
-from .forms import UserRegisterForm, UserLoginForm
+from .forms import UserRegisterForm, UserLoginForm, UserUpdatePasswordForm
 
-#models
+# models
 from .models import User
 
 
-class HomeView(TemplateView):
+class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'users/home.html'
+    login_url = '/login/'
+
 
 class LoginView(FormView):
     template_name = 'users/login.html'
@@ -30,9 +33,11 @@ class LoginView(FormView):
         )
         login(self.request, user)
         return super(LoginView, self).form_valid(form)
+
+
 class UserRegisterView(FormView):
     template_name = 'users/register.html'
-    form_class =  UserRegisterForm
+    form_class = UserRegisterForm
     success_url = '/'
 
     def form_valid(self, form):
@@ -47,9 +52,29 @@ class UserRegisterView(FormView):
 
         return super(UserRegisterView, self).form_valid(form)
 
+
 class LogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return HttpResponseRedirect(
-            reverse('users:login')
+            '/login/'
         )
+
+class UpdatePasswordView(LoginRequiredMixin, FormView):
+    template_name = 'users/update_password.html'
+    form_class = UserUpdatePasswordForm
+    success_url = '/login/'
+    login_url = '/login/'
+
+    def form_valid(self, form):
+        user = self.request.user
+        auth_user = authenticate(
+            username=user.username,
+            password=form.cleaned_data['current_password']
+        )
+
+        if auth_user:
+            user.set_password(form.cleaned_data['new_password'])
+            user.save()
+        logout(self.request)
+        return super(UpdatePasswordView, self).form_valid(form)
